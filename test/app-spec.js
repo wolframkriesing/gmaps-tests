@@ -2,18 +2,27 @@ import assert from 'assert';
 import sinon from 'sinon';
 const noop = function() {};
 
-assert.called = sinon.assert.called;
+assert.calledWith = sinon.assert.calledWith;
 
 describe('the app', function() {
   describe('geocodes address', function() {
 
     it('from given location string', function() {
+      let geocodeSuccess = {
+        fromAddress: sinon.stub()
+      };
       
+      const location = 'Hamburg';
+      let app = new App(noop, geocodeSuccess);
+      app.run(location);
+      
+      assert.calledWith(geocodeSuccess.fromAddress, location);
     });
     it('does show map on success', function() {
+      const result = {};
       let geocodeSuccess = {
         fromAddress: (location, onError, onSuccess) => {
-          onSuccess();
+          onSuccess(result);
         }
       };
       
@@ -21,7 +30,7 @@ describe('the app', function() {
       sinon.stub(app, 'showMap');
       app.run();
       
-      assert.called(app.showMap);
+      assert.calledWith(app.showMap, result);
     });
     it('handles error', function() {
       const errorText = 'error text';
@@ -65,14 +74,14 @@ class App {
     
   }
   
-  run() {
+  run(location) {
     let onError = (errorText) => {
       this.alert('Geocode was not successful for the following reason: ' + errorText);
     };
-    const onSuccess = () => {
-      this.showMap();
+    const onSuccess = (result) => {
+      this.showMap(result);
     };
-    this.geocode.fromAddress('', onError, onSuccess);
+    this.geocode.fromAddress(location, onError, onSuccess);
   }
   
 }
