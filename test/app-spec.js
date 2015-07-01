@@ -6,6 +6,16 @@ assert.called = sinon.assert.called;
 assert.calledWith = sinon.assert.calledWith;
 
 describe('the app', function() {
+
+  let geocodeSuccess;
+  beforeEach(function() {
+    geocodeSuccess = {
+      fromAddress: (location, onError, onSuccess) => {
+        onSuccess('irrelevant');
+      }
+    };
+  });
+  
   describe('geocodes address', function() {
 
     it('from given location string', function() {
@@ -52,12 +62,6 @@ describe('the app', function() {
     
   });
   it('shows marker at address`s location', function() {
-    let geocodeSuccess = {
-      fromAddress: (location, onError, onSuccess) => {
-        onSuccess('irrelevant');
-      }
-    };
-    
     let app = new App(noop, geocodeSuccess);
     sinon.spy(app, 'showMarker');
     app.run();
@@ -66,7 +70,17 @@ describe('the app', function() {
   });
   describe('opens infowindow on marker click', function() {
     it('opens the infowindow', function() {
+      let markerDouble = {
+        registerOnClick: (fn) => { fn(); }
+      };
+      let infoWindow = {
+        open: sinon.stub()
+      };
       
+      let app = new App(noop, geocodeSuccess, markerDouble, infoWindow);
+      app.run();
+      
+      assert.called(infoWindow.open);
     });
     it('with the address from the geocode', function() {
       
@@ -76,9 +90,11 @@ describe('the app', function() {
 
 class App {
   
-  constructor(alert, geocode) {
+  constructor(alert, geocode, marker, infoWindow) {
     this.alert = alert;
     this.geocode = geocode;
+    this.marker = marker;
+    this.infoWindow = infoWindow;
   }
   
   showMap() {
@@ -96,6 +112,9 @@ class App {
     const onSuccess = (result) => {
       this.showMap(result);
       this.showMarker();
+      this.marker && this.marker.registerOnClick(() => {
+        this.infoWindow.open();
+      })
     };
     this.geocode.fromAddress(location, onError, onSuccess);
   }
