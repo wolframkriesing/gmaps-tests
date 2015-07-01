@@ -1,35 +1,29 @@
+import Geocode from './geocode';
+import Map from './map';
+import InfoWindow from './infowindow.js';
+import Marker from './marker';
+import GeocoderResult from './geocoderresult.js';
 
-function geocodeFromAddress(address, callback) {
-  var geocoder = new google.maps.Geocoder();
-  geocoder.geocode({address: address}, callback);
+function onError(error) {
+  alert('Geocode was not successful for the following reason: ' + error);
 }
 
-geocodeFromAddress('Hamburg', function(results, status) {
-  var position, result, marker, map, infowindow;
-  
-  if (status != google.maps.GeocoderStatus.OK) {
-    alert('Geocode was not successful for the following reason: ' + status);
-  }
-    
-  result = results[0];
-  position = result.geometry.location;
+function onSuccess(results) {
+  let geocoderResult = GeocoderResult.fromGoogleGeocoderResult(results[0]);
+  //var location, result;
+  //
+  //result = results[0];
+  //location = result.geometry.location;
+  //const address = result.formatted_address;
 
-  map = new google.maps.Map(document.getElementById('map'), {
-    center: position,
-    zoom: 13
-  });
-
-  marker = new google.maps.Marker({
-    map: map,
-    position: position
-  });
-
-  infowindow = new google.maps.InfoWindow({
-    position: position
-  });
-
-  google.maps.event.addListener(marker, 'click', function() {
-    infowindow.setContent(result.formatted_address);
+  let map = new Map(geocoderResult.location);
+  let marker = new Marker(map, geocoderResult.location);
+  let infowindow = new InfoWindow(geocoderResult.location);
+  marker.registerOnClick(function() {
+    infowindow.setContent(geocoderResult.formattedAddress);
     infowindow.open(map, marker);
   });
-});
+}
+
+let geocode = new Geocode();
+geocode.fromAddress('Hamburg', onError, onSuccess);
