@@ -69,21 +69,27 @@ describe('the app', function() {
     assert.called(app.showMarker);
   });
   describe('opens infowindow on marker click', function() {
-    it('opens the infowindow', function() {
-      let markerDouble = {
+    let markerDouble;
+    let infoWindow;
+    beforeEach(function() {
+      markerDouble = {
         registerOnClick: (fn) => { fn(); }
       };
-      let infoWindow = {
+      infoWindow = {
         open: sinon.stub()
       };
-      
+    });
+    it('opens the infowindow', function() {
       let app = new App(noop, geocodeSuccess, markerDouble, infoWindow);
       app.run();
       
       assert.called(infoWindow.open);
     });
     it('with the address from the geocode', function() {
-      
+      //let app = new App(noop, geocodeSuccess, markerDouble, infoWindow);
+      //app.run();
+      //
+      //assert.called(infoWindow.setContent);
     });
   });
 });
